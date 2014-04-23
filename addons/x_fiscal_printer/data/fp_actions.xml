@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="action_client_fp_load" model="ir.actions.client">
+            <field name="name">Update printer list</field>
+            <field name="tag">fp_query</field>
+            <field name="params" eval="{}"/>
+        </record>
+
+        <record id="action_client_fp_test" model="ir.actions.client">
+            <field name="name">Test printer</field>
+            <field name="tag">fp_test</field>
+            <field name="params" eval="{}"/>
+        </record>
+
+	<record id="binder_fp_test" model="ir.values">
+	    <field name="name">Test printer</field>
+	    <field name="key">action</field>
+	    <field name="key2">client_action_multi</field>
+	    <field name="model">fiscal_printer.fiscal_printer</field>
+	    <field name="value" eval="'ir.actions.client,%d'%action_client_fp_test"/>
+	</record>
+
+        <record id="action_client_fp_commit" model="ir.actions.client">
+            <field name="name">Commit printer attribute</field>
+            <field name="tag">fp_commit</field>
+            <field name="params" eval="{}"/>
+        </record>
+
+	<record id="binder_fp_commit" model="ir.values">
+	    <field name="name">Commit printer attribute</field>
+	    <field name="key">action</field>
+	    <field name="key2">client_action_multi</field>
+	    <field name="model">fiscal_printer.fiscal_printer_attribute</field>
+	    <field name="value" eval="'ir.actions.client,%d'%action_client_fp_commit"/>
+	</record>
+
+	<record id="todo_fp_load" model="ir.actions.todo">
+            <field name="action_id" ref="action_client_fp_load"/>
+            <field name="state">open</field>
+        </record>
+
+	<!--menuitem name="Accounting/Configuration/Fiscal Printers/Publish Locals"
+	    id="menu_fp_publish"
+            sequence="200"
+	    action="action_client_fp_load"
+	    /-->
+    </data>
+</openerp>

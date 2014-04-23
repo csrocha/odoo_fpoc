@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+##############################################################################
+#
+#    fiscal_printer
+#    Copyright (C) 2014 No author.
+#    No email
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+-->
+<openerp>
+    <data>
+
+        <!-- SEARCH VIEW -->
+        <record id="view_fiscal_printer_fical_printer_attribute_filter" model="ir.ui.view">
+            <field name="name">fiscal_printer.fical_printer_attribute.select</field>
+            <field name="model">fiscal_printer.fical_printer_attribute</field>
+            <field name="arch" type="xml">
+                <search string="Fiscal Printer Attribute" version="7.0">
+                    <group string="By Attribute">
+                    </group>
+                    <group string="By object">
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- FORMVIEW -->
+        <record id="view_fiscal_printer_fical_printer_attribute_form" model="ir.ui.view">
+            <field name="name">fiscal_printer.fical_printer_attribute.form</field>
+            <field name="model">fiscal_printer.fical_printer_attribute</field>
+            <field name="arch" type="xml">
+                <form string="Fiscal Printer Attribute" version="7.0">
+                    <header>
+                    </header>
+                    <sheet string="Fiscal Printer Attribute">
+                     <group>
+                        <field name="name"
+                            />
+                        <field name="value"
+                            />
+                        <field name="lastUpdate"
+                            />
+                        <field name="lastCommit"
+                            />
+                        <field name="readOnly"
+                            />
+                    <field name="fiscal_printer_id"
+                            />
+                     </group>
+                    </sheet>
+
+                </form>
+            </field>
+        </record>
+
+        <!-- TREEVIEW -->
+
+        <record id="view_fiscal_printer_fical_printer_attribute_tree" model="ir.ui.view">
+            <field name="name">fiscal_printer.fical_printer_attribute.tree</field>
+            <field name="model">fiscal_printer.fical_printer_attribute</field>
+            <field name="arch" type="xml">
+                <tree string="Fiscal Printer Attribute"
+                    >
+                    <field name="fiscal_printer_id"
+                        />
+                </tree>
+            </field>
+        </record>
+
+    </data>
+</openerp>
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+     -->

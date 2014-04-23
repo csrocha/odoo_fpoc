@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+##############################################################################
+#
+#    fiscal_printer
+#    Copyright (C) 2014 No author.
+#    No email
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+-->
+<!-- fiscal_printer.wiz_update_printers -->
+<!-- fiscal_printer.wiz_update_printers -->
+<!-- fiscal_printer.wiz_update_printers -->
+<openerp>
+    <data>
+        <!-- Workflow -->
+
+        <record id="wiz_update_printers_untitle_wkf" model="workflow">
+            <field name="name">fiscal_printer.wiz_update_printers.untitle</field>
+            <field name="osv">fiscal_printer.wiz_update_printers</field>
+            <field name="on_create">True</field>
+        </record>
+
+        <!-- Activities -->
+
+        <record id="a_0CC3_2490" model="workflow.activity">
+            <field name="wkf_id" ref="wiz_update_printers_untitle_wkf"/>
+            <field name="flow_start">True</field>
+            <field name="name">Listing</field>
+            <field name="action">update_printers()</field>
+            <field name="kind">function</field>
+        </record>
+        <record id="a_0CC3_2499" model="workflow.activity">
+            <field name="wkf_id" ref="wiz_update_printers_untitle_wkf"/>
+            <field name="flow_stop">True</field>
+            <field name="name">Done</field>
+            <field name="action">
+                write({'state':'done'})
+            </field>
+            <field name="kind">function</field>
+        </record>
+
+        <!-- Transitions -->
+
+        <record id="t_0CC3_2493" model="workflow.transition">
+            <field name="act_from" ref="a_0CC3_2490"/>
+            <field name="act_to" ref="a_0CC3_2499"/>
+            <field name="signal">sgn_do_create</field>
+            <field name="condition">True</field>
+        </record>
+    </data>
+</openerp>
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+     -->

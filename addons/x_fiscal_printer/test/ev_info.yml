@@ -1,0 +1,6 @@
+- !record {model: fiscal_printer.wiz_update_printers, id: wiz_up_1}:
+        create_printers: False
+
+- !python {model: fiscal_printer.wiz_update_printers}: |
+        self.update_printers(cr, uid, [ref("wiz_up_1")]);
+

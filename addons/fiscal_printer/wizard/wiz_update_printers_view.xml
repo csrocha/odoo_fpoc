@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+##############################################################################
+#
+#    fiscal_printer
+#    Copyright (C) 2014 No author.
+#    No email
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+
+-->
+<openerp>
+    <data>
+        <!-- FORMVIEW -->
+        <record id="view_fiscal_printer_wiz_update_printers_form" model="ir.ui.view">
+            <field name="name">fiscal_printer.wiz_update_printers.form</field>
+            <field name="model">fiscal_printer.wiz_update_printers</field>
+            <field name="arch" type="xml">
+                <form string="wiz_update_printers" version="7.0">
+                    <header>
+                        <button name="sgn_do_create"
+                            states="listing"
+                            string="do_create"
+                            />
+                        <field name="state" widget="statusbar"
+                            statusbar_colors='{}'
+                            />
+                    </header>
+                    <sheet string="wiz_update_printers">
+                     <group>
+                        <field name="create_printers"
+                            />
+                     </group>
+                    </sheet>
+
+                </form>
+            </field>
+        </record>
+    </data>
+</openerp>
