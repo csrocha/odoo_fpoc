@@ -21,6 +21,7 @@
 ##############################################################################
 
 import invoice
+import journal
 import fiscal_printer
 import wizard
 import controllers

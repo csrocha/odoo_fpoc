@@ -35,6 +35,7 @@
     'data': [
         'data/fp_actions.xml',
         'data/fiscal_printer_view.xml',
+        'data/journal_view.xml',
     ],
     'post_load': '',
     'js': [ 'static/src/js/fiscal_printer.js' ],
