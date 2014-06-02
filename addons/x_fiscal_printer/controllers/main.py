@@ -64,17 +64,23 @@ def json_dispatch(self, method):
 oeweb.JsonRequest.dispatch = json_dispatch
 
 ## Event manager
-def do_event(event, data={}, session_id=None, printer_id=None):
+def do_event(event, data={}, session_id=None, printer_id=None, control=False):
     event_result = {}
     item = {
         'event': event,
         'data': json.dumps(data),
     }
-    qid = ':'.join([session_id or '', printer_id or ''])
-    qids = [ qid ] if qid != ':' else event_hub.keys()
-    qids = [ qid for qid in qids if qid in event_hub.keys() ]
 
-    _logger.debug("QID: %s" % qids)
+    # Select target of queue. Control go to Chrome Application, else take printers.
+    # All control queue end with ':'.
+    if control:
+        qids = [ session_id ] if session_id else [ qid for qid in event_hub.keys() if qid[-1] == ':']
+    else:
+        qid = ':'.join([session_id or '', printer_id or ''])
+        qids = [ qid ] if qid != ':' else event_hub.keys()
+        qids = [ qid for qid in qids if qid in event_hub.keys() and qid[-1] != ':' ]
+
+    _logger.debug("Send message '%s' to spools: %s" % (event, qids))
 
     for qid in qids:
         try:
@@ -100,7 +106,7 @@ def do_return(req, result):
         return False
 
     result_hub[qid].put(result)
-    _logger.debug("QID: %s" % qid)
+    _logger.debug("<<< QID: %s" % qid)
     event_hub[qid].task_done()
     return True
 
@@ -128,6 +134,8 @@ class FiscalPrinterController(oeweb.Controller):
         sid = req.session_id
         pid = req.params.get('printer_id', '')
         qid = ':'.join([sid, pid])
+
+        _logger.debug("Create new spool: %s" % qid)
 
         if (qid in event_hub):
             del event_hub[qid]

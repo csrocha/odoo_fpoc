@@ -36,7 +36,7 @@ class wiz_update_printers(osv.TransientModel):
     def update_printers(self, cr, uid, ids, context=None):
         """"""
         fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
-        R = do_event('info')
+        R = do_event('list_printers', control=True)
         print "R:", R
         for s in R:
             for p in R[s]:

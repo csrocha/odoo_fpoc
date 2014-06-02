@@ -25,6 +25,8 @@ import re
 from openerp import netsvc
 from openerp.osv import osv, fields
 
+from openerp.addons.x_fiscal_printer.controllers.main import do_event
+
 class wiz_update_printers(osv.TransientModel):
     """"""
     
@@ -54,9 +56,19 @@ class wiz_update_printers(osv.TransientModel):
 
     def update_printers(self, cr, uid, ids, context=None):
         """"""
-        raise NotImplementedError
-
-
+        fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
+        R = do_event('list_printers', control=True)
+        print "R:", R
+        for s in R:
+            for p in R[s]:
+                values = {
+                    'name': p['name'],
+                    'protocol': p['protocol'],
+                    'model': p['model'],
+                    'serialNumber': p['serialNumber'],
+                }
+                fp_obj.create(cr, uid, values)
+        return True
 
 wiz_update_printers()
 
