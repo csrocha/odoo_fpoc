@@ -60,8 +60,9 @@
                         <notebook>
                             <page string="Status">
                                 <group>
-                                <field name="clock" />
+                                <field name="clock" widget="datetime"/>
                                 <field name="printerStatus" />
+                                <field name="fiscalStatus" />
                                 </group>
                             </page>
                             <page string="Attributes">

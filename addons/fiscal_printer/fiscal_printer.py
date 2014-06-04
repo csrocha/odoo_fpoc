@@ -25,9 +25,28 @@ from openerp import netsvc
 from openerp.osv import osv, fields
 
 from controllers.main import do_event
+from datetime import datetime
 
 class fiscal_printer(osv.osv):
     """"""
+    def _get_status(self, cr, uid, ids, field_name, arg, context=None):
+        s = self.get_state(cr, uid, ids, context) 
+        r = {}
+        for p_id in ids:
+            if s[p_id]:
+                dt = datetime.strptime(s[p_id]['clock'], "%Y-%m-%d %H:%M:%S")
+                r[p_id] = {
+                    'clock': dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    'printerStatus': s[p_id]['strPrinterStatus'],
+                    'fiscalStatus': s[p_id]['strFiscalStatus'],
+                }
+            else:
+                r[p_id]= {
+                    'clock':False,
+                    'printerStatus':'Offline',
+                    'fiscalStatus': 'Offline',
+                }
+        return r
     
     _name = 'fiscal_printer.fiscal_printer'
     _description = 'fiscal_printer'
@@ -37,9 +56,10 @@ class fiscal_printer(osv.osv):
         'protocol': fields.char(string='Protocol'),
         'model': fields.char(string='Model'),
         'serialNumber': fields.char(string='Serial Number (S/N)'),
-        'printerStatus': fields.char(string='Printer Status'),
         'lastUpdate': fields.datetime(string='Last Update'),
-        'clock': fields.datetime(string='Clock'),
+        'printerStatus': fields.function(_get_status, type="char", method=True, readonly="True", multi="state", string='Printer status'),
+        'fiscalStatus':  fields.function(_get_status, type="char", method=True, readonly="True", multi="state", string='Fiscal status'),
+        'clock':         fields.function(_get_status, type="datetime", method=True, readonly="True", multi="state", string='Clock'),
         'session_id': fields.char(string='session_id'),
         'attribute_ids': fields.one2many('fiscal_printer.fiscal_printer_attribute', 'fiscal_printer_id', string='Attributes'), 
     }
@@ -99,7 +119,6 @@ class fiscal_printer(osv.osv):
                      session_id=fp.session_id, printer_id=fp.name)
         return True
 
-    # TODO: {'name': fp.name} must be replaced with printer_id
     def get_state(self, cr, uid, ids, context=None):
         r = {}
         for fp in self.browse(cr, uid, ids):
