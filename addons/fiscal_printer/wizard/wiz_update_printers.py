@@ -25,7 +25,45 @@ import re
 from openerp import netsvc
 from openerp.osv import osv, fields
 
-from openerp.addons.x_fiscal_printer.controllers.main import do_event
+from openerp.addons.fiscal_printer.controllers.main import do_event
+
+import logging
+_logger = logging.getLogger(__name__)
+
+class wiz_fiscal_printer(osv.TransientModel):
+    """
+    Temporal published printers to be selected.
+    """
+    _name = 'fiscal_printer.wiz_fiscal_printer'
+    _description = 'Published printers to be selected in wizard.'
+
+    _columns = {
+        'name': fields.char(string='Name'),
+        'protocol': fields.char(string='Protocol'),
+        'model': fields.char(string='Model'),
+        'serialNumber': fields.char(string='Serial Number'),
+    }
+
+wiz_fiscal_printer()
+
+def _get_fiscal_printers(self, cr, uid, context=None):
+    t_fp_obj = self.pool.get('fiscal_printer.wiz_fiscal_printer')
+
+    R = do_event('list_printers', control=True)
+
+    w_fp_ids = []
+    for r in R:
+        for p in r['printers']:
+            values = {
+                'name': p['name'],
+                'protocol': p['protocol'],
+                'model': p['model'],
+                'serialNumber': p['serialNumber'],
+            }
+            pid = t_fp_obj.create(cr, uid, values)
+            w_fp_ids.append(pid)
+
+    return w_fp_ids
 
 class wiz_update_printers(osv.TransientModel):
     """"""
@@ -39,16 +77,15 @@ class wiz_update_printers(osv.TransientModel):
         ('done','Done'),
     ]
 
-
     _columns = {
-        'create_printers': fields.boolean(string='create_printers'),
         'state': fields.selection(_states_, "State"),
+        'wiz_fiscal_printer_ids': fields.many2many('fiscal_printer.wiz_fiscal_printer', 'wiz_update_printers_rel', 'wiz_id', 'pri_id', 'Fiscal Printers'),
     }
 
     _defaults = {
         'state': 'listing',
+        'wiz_fiscal_printer_ids': _get_fiscal_printers,
     }
-
 
     _constraints = [
     ]
@@ -57,15 +94,13 @@ class wiz_update_printers(osv.TransientModel):
     def update_printers(self, cr, uid, ids, context=None):
         """"""
         fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
-        R = do_event('list_printers', control=True)
-        print "R:", R
-        for s in R:
-            for p in R[s]:
+        for wiz in self.browse(cr, uid, ids):
+            for pri in wiz.wiz_fiscal_printer_ids:
                 values = {
-                    'name': p['name'],
-                    'protocol': p['protocol'],
-                    'model': p['model'],
-                    'serialNumber': p['serialNumber'],
+                    'name': pri.name,
+                    'protocol': pri.protocol,
+                    'model': pri.model,
+                    'serialNumber': pri.serialNumber,
                 }
                 fp_obj.create(cr, uid, values)
         return True

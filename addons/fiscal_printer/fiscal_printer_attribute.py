@@ -25,11 +25,11 @@ import re
 from openerp import netsvc
 from openerp.osv import osv, fields
 
-class fical_printer_attribute(osv.osv):
+class fiscal_printer_attribute(osv.osv):
     """"""
     
-    _name = 'fiscal_printer.fical_printer_attribute'
-    _description = 'fical_printer_attribute'
+    _name = 'fiscal_printer.fiscal_printer_attribute'
+    _description = 'fiscal_printer_attribute'
 
 
 
@@ -49,9 +49,6 @@ class fical_printer_attribute(osv.osv):
     _constraints = [
     ]
 
-
-
-
-fical_printer_attribute()
+fiscal_printer_attribute()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -40,10 +40,15 @@
                             />
                     </header>
                     <sheet string="wiz_update_printers">
-                     <group>
-                        <field name="create_printers"
-                            />
-                     </group>
+			    <p>Fiscal Printers</p>
+			    <field name="wiz_fiscal_printer_ids">
+				    <tree>
+					    <field name="name"/>
+					    <field name="protocol"/>
+					    <field name="model"/>
+					    <field name="serialNumber"/>
+				    </tree>
+			    </field>
                     </sheet>
 
                 </form>

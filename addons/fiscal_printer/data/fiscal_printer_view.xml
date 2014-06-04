@@ -24,6 +24,22 @@
 <openerp>
     <data>
 
+        <!-- SEARCH VIEW -->
+        <record id="view_fiscal_printer_fiscal_printer_filter" model="ir.ui.view">
+            <field name="name">fiscal_printer.fiscal_printer.select</field>
+            <field name="model">fiscal_printer.fiscal_printer</field>
+            <field name="arch" type="xml">
+                <search string="Fiscal Printer" version="7.0">
+                    <group string="By Attribute">
+                    <field name="name" string="Name"
+                            />
+                    </group>
+                    <group string="By object">
+                    </group>
+                </search>
+            </field>
+        </record>
+
         <!-- FORMVIEW -->
         <record id="fiscal_printer.view_fiscal_printer_fiscal_printer_form" model="ir.ui.view">
             <field name="name">fiscal_printer.fiscal_printer.form</field>
@@ -49,6 +65,8 @@
                                 </group>
                             </page>
                             <page string="Attributes">
+                                <button name="read_attributes"  type="object" string="Read"/>
+                                <button name="write_attributes" type="object" string="Write"/>
                                 <field name="attribute_ids">
                                     <tree editable="bottom">
                                         <field name="name" readonly="1"/>
@@ -72,6 +90,27 @@
                         </notebook>
                     </sheet>
                 </form>
+            </field>
+        </record>
+
+        <!-- TREEVIEW -->
+        <record id="view_fiscal_printer_fiscal_printer_tree" model="ir.ui.view">
+            <field name="name">fiscal_printer.fiscal_printer.tree</field>
+            <field name="model">fiscal_printer.fiscal_printer</field>
+            <field name="arch" type="xml">
+                <tree string="Fiscal Printer"
+                    >
+                    <field name="name"
+                        />
+                    <field name="protocol"
+                        />
+                    <field name="model"
+                        />
+                    <field name="serialNumber"
+                        />
+                    <field name="lastUpdate"
+                        />
+                </tree>
             </field>
         </record>
 

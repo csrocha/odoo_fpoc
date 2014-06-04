@@ -41,9 +41,7 @@ class fiscal_printer(osv.osv):
         'lastUpdate': fields.datetime(string='Last Update'),
         'clock': fields.datetime(string='Clock'),
         'session_id': fields.char(string='session_id'),
-        'journal_id': fields.one2many('account.journal', 'fiscal_printer_id', string='Journals'), 
-        'attribute_ids': fields.one2many('fiscal_printer.fical_printer_attribute', 'fiscal_printer_id', string='Attributes'), 
-        'invoice_ids': fields.one2many('account.invoice', 'fiscal_printer_id', string='Invoices'), 
+        'attribute_ids': fields.one2many('fiscal_printer.fiscal_printer_attribute', 'fiscal_printer_id', string='Attributes'), 
     }
 
     _defaults = {
@@ -110,6 +108,37 @@ class fiscal_printer(osv.osv):
             r[fp.id] = event_result.pop() if event_result else False
         return r
 
+    def read_attributes(self, cr, uid, ids, context=None):
+        attr_obj = self.pool.get('fiscal_printer.fiscal_printer_attribute')
+        r = {}
+        for fp in self.browse(cr, uid, ids):
+            event_result = do_event('read_attributes', {'name': fp.name},
+                     session_id=fp.session_id, printer_id=fp.name)
+            r = event_result.pop() if event_result else False
+            if r and 'attributes' in r:
+                lastUpdate = fields.date.context_today
+                attribs = []
+                for k,v in r['attributes'].items():
+                    attr_id = attr_obj.search(cr, uid, [('name','=',k), ('fiscal_printer_id','=',fp.id)])
+                    if len(attr_id) == 0:
+                        t_op = 0
+                        t_id = 0
+                    else:
+                        t_op = 1
+                        t_id = attr_id[0]
+                    attribs.append((t_op,t_id,{
+                        'name': k,
+                        'value': v,
+                        'lastUpdate': False,
+                        'readOnly': k in r['readonly'],
+                        'fiscal_printer_id': fp.id
+                    }))
+                self.write(cr, uid, fp.id, {'attribute_ids': attribs})
+        return True
+
+    def write_attributes(self, cr, uid, ids, context=None):
+        r = {}
+        return True
 
 
 fiscal_printer()

@@ -145,7 +145,7 @@ class FiscalPrinterController(oeweb.Controller):
         result_hub[qid] = Queue()
 
         if req.httprequest.headers.get('accept') != 'text/event-stream':
-            return req.make_response('Not implemented', status=501)
+            return req.make_response('Not implemented', headers={'Status': '501 Not Implemented'})
 
         def event_source_iter():
             event_id = req.httprequest.headers.get('last-event-id', 0, type=int)

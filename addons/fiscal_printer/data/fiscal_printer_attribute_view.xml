@@ -25,14 +25,12 @@
     <data>
 
         <!-- SEARCH VIEW -->
-        <record id="view_fiscal_printer_fiscal_printer_filter" model="ir.ui.view">
-            <field name="name">fiscal_printer.fiscal_printer.select</field>
-            <field name="model">fiscal_printer.fiscal_printer</field>
+        <record id="view_fiscal_printer_fiscal_printer_attribute_filter" model="ir.ui.view">
+            <field name="name">fiscal_printer.fiscal_printer_attribute.select</field>
+            <field name="model">fiscal_printer.fiscal_printer_attribute</field>
             <field name="arch" type="xml">
-                <search string="Fiscal Printer" version="7.0">
+                <search string="Fiscal Printer Attribute" version="7.0">
                     <group string="By Attribute">
-                    <field name="name" string="Name"
-                            />
                     </group>
                     <group string="By object">
                     </group>
@@ -41,31 +39,26 @@
         </record>
 
         <!-- FORMVIEW -->
-        <record id="view_fiscal_printer_fiscal_printer_form" model="ir.ui.view">
-            <field name="name">fiscal_printer.fiscal_printer.form</field>
-            <field name="model">fiscal_printer.fiscal_printer</field>
+        <record id="view_fiscal_printer_fiscal_printer_attribute_form" model="ir.ui.view">
+            <field name="name">fiscal_printer.fiscal_printer_attribute.form</field>
+            <field name="model">fiscal_printer.fiscal_printer_attribute</field>
             <field name="arch" type="xml">
-                <form string="Fiscal Printer" version="7.0">
+                <form string="Fiscal Printer Attribute" version="7.0">
                     <header>
                     </header>
-                    <sheet string="Fiscal Printer">
+                    <sheet string="Fiscal Printer Attribute">
                      <group>
                         <field name="name"
                             />
-                        <field name="protocol"
-                            />
-                        <field name="model"
-                            />
-                        <field name="serialNumber"
-                            />
-                        <field name="printerStatus"
+                        <field name="value"
                             />
                         <field name="lastUpdate"
-                            widget="fp_update"
                             />
-                        <field name="clock"
+                        <field name="lastCommit"
                             />
-                    <field name="attribute_ids"
+                        <field name="readOnly"
+                            />
+                    <field name="fiscal_printer_id"
                             />
                      </group>
                     </sheet>
@@ -76,21 +69,13 @@
 
         <!-- TREEVIEW -->
 
-        <record id="view_fiscal_printer_fiscal_printer_tree" model="ir.ui.view">
-            <field name="name">fiscal_printer.fiscal_printer.tree</field>
-            <field name="model">fiscal_printer.fiscal_printer</field>
+        <record id="view_fiscal_printer_fiscal_printer_attribute_tree" model="ir.ui.view">
+            <field name="name">fiscal_printer.fiscal_printer_attribute.tree</field>
+            <field name="model">fiscal_printer.fiscal_printer_attribute</field>
             <field name="arch" type="xml">
-                <tree string="Fiscal Printer"
+                <tree string="Fiscal Printer Attribute"
                     >
-                    <field name="name"
-                        />
-                    <field name="protocol"
-                        />
-                    <field name="model"
-                        />
-                    <field name="serialNumber"
-                        />
-                    <field name="lastUpdate"
+                    <field name="fiscal_printer_id"
                         />
                 </tree>
             </field>
