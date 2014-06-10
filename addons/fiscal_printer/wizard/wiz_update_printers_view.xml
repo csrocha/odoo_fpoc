@@ -30,17 +30,9 @@
             <field name="model">fiscal_printer.wiz_update_printers</field>
             <field name="arch" type="xml">
                 <form string="wiz_update_printers" version="7.0">
-                    <header>
-                        <button name="sgn_do_create"
-                            states="listing"
-                            string="do_create"
-                            />
-                        <field name="state" widget="statusbar"
-                            statusbar_colors='{}'
-                            />
-                    </header>
+		    <header></header>
                     <sheet string="wiz_update_printers">
-			    <p>Fiscal Printers</p>
+			    <h1>Fiscal Printers</h1>
 			    <field name="wiz_fiscal_printer_ids">
 				    <tree>
 					    <field name="name"/>
@@ -49,8 +41,8 @@
 					    <field name="serialNumber"/>
 				    </tree>
 			    </field>
+                            <button name="sgn_do_create" string="Associete Printers" />
                     </sheet>
-
                 </form>
             </field>
         </record>

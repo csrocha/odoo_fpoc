@@ -21,7 +21,7 @@
 ##############################################################################
 
 import fiscal_printer
-import fiscal_printer_attribute
+import fiscal_printer_user
 import wizard
 import report
 import controllers

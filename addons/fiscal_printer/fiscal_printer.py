@@ -27,8 +27,37 @@ from openerp.osv import osv, fields
 from controllers.main import do_event
 from datetime import datetime
 
+class fiscal_printer_attribute(osv.osv):
+    """
+    Fiscal printer attribute is a value to setup the printer.
+    """
+    
+    _name = 'fiscal_printer.attribute'
+    _description = 'Fiscal printer attribute'
+
+    _columns = {
+        'name': fields.char(string='Name'),
+        'value': fields.char(string='Value'),
+        'lastUpdate': fields.datetime(string='Last Update'),
+        'lastCommit': fields.datetime(string='Last Commit'),
+        'readOnly': fields.boolean(string='Read Only'),
+        'fiscal_printer_id': fields.many2one('fiscal_printer.fiscal_printer', string='Fiscal Printer', required=True), 
+    }
+
+    _defaults = {
+    }
+
+    _constraints = [
+        ('unique_name', 'UNIQUE (name, fiscal_printer_id)', 'Name has to be unique!')
+    ]
+
+fiscal_printer_attribute()
+
 class fiscal_printer(osv.osv):
-    """"""
+    """
+    The fiscal printer entity.
+    """
+
     def _get_status(self, cr, uid, ids, field_name, arg, context=None):
         s = self.get_state(cr, uid, ids, context) 
         r = {}
@@ -61,7 +90,7 @@ class fiscal_printer(osv.osv):
         'fiscalStatus':  fields.function(_get_status, type="char", method=True, readonly="True", multi="state", string='Fiscal status'),
         'clock':         fields.function(_get_status, type="datetime", method=True, readonly="True", multi="state", string='Clock'),
         'session_id': fields.char(string='session_id'),
-        'attribute_ids': fields.one2many('fiscal_printer.fiscal_printer_attribute', 'fiscal_printer_id', string='Attributes'), 
+        'attribute_ids': fields.one2many('fiscal_printer.attribute', 'fiscal_printer_id', string='Attributes'), 
     }
 
     _defaults = {
@@ -127,8 +156,16 @@ class fiscal_printer(osv.osv):
             r[fp.id] = event_result.pop() if event_result else False
         return r
 
+    def get_counters(self, cr, uid, ids, context=None):
+        r = {}
+        for fp in self.browse(cr, uid, ids):
+            event_result = do_event('get_counters', {'name': fp.name},
+                     session_id=fp.session_id, printer_id=fp.name)
+            r[fp.id] = event_result.pop() if event_result else False
+        return r
+
     def read_attributes(self, cr, uid, ids, context=None):
-        attr_obj = self.pool.get('fiscal_printer.fiscal_printer_attribute')
+        attr_obj = self.pool.get('fiscal_printer.attribute')
         r = {}
         for fp in self.browse(cr, uid, ids):
             event_result = do_event('read_attributes', {'name': fp.name},
@@ -159,7 +196,29 @@ class fiscal_printer(osv.osv):
         r = {}
         return True
 
+    def make_fiscal_ticket(self, cr, uid, ids, options={}, ticket={}, context=None):
+        fparms = locals()
+        r = {}
+        for fp in self.browse(cr, uid, ids):
+            fparms['name'] = fp.name
+            fparms['options'] = options
+            fparms['ticket'] = ticket
+            event_result = do_event('make_fiscal_ticket', fparms,
+                                    session_id=fp.session_id, printer_id=fp.name)
+            r[fp.id] = event_result.pop() if event_result else False
+        return r
 
+    def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
+        fparms = locals()
+        r = {}
+        for fp in self.browse(cr, uid, ids):
+            fparms['name'] = fp.name
+            event_result = do_event('cancel_fiscal_ticket', fparms,
+                                    session_id=fp.session_id, printer_id=fp.name)
+            r[fp.id] = event_result.pop() if event_result else False
+        return r
+
+ 
 fiscal_printer()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
