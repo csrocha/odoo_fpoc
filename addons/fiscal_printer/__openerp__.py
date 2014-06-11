@@ -35,8 +35,6 @@
         u'test/check_spools.yml',
     ],
     'update_xml': [
-        u'wizard/wiz_update_printers_view.xml',
-        u'wizard/wiz_update_printers_workflow.xml',
         u'data/fiscal_printer_view.xml',
         u'data/fiscal_printer_menuitem.xml',
         u'security/fiscal_printer_group.xml',

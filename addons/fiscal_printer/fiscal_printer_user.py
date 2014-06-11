@@ -37,11 +37,11 @@ class fiscal_printer_configuration_line(osv.osv):
         'configuration_id': fields.many2one('fiscal_printer.configuration', 'Fiscal Printer Configuration'),
     }
 
-    _constraints = [
+    _sql_constraints = [
         ('unique_name', 'UNIQUE (name, configuration_id)', 'Name has to be unique!')
     ]
 
-fiscal_printer_attribute()
+fiscal_printer_configuration_line()
 
 class fiscal_printer_configuration(osv.osv):
     """
@@ -59,14 +59,24 @@ class fiscal_printer_configuration(osv.osv):
 
     _columns = {
         'name': fields.char(string='Name'),
-        'configuration_line_ids': field.one2many('fiscal_printer.configuration_line', 'configuration_id', string='Configuration lines'),
-        'user_ids': field.one2many('fiscal_printer.user', 'configuration_id', 'User entities'),
+        'configuration_line_ids': fields.one2many('fiscal_printer.configuration_line', 'configuration_id', string='Configuration lines'),
+        'user_ids': fields.one2many('fiscal_printer.user', 'fiscal_printer_configuration_id', 'User entities'),
     }
 
-    _constraints = [
+    _sql_constraints = [
         ('unique_name', 'UNIQUE (name)', 'Name has to be unique!')
     ]
 
+    def toDict(self, cr, uid, ids, context=None):
+        context = context or {}
+        r = {}
+        for conf in self.browse(cr, uid, ids, context):
+            push_arg = {}
+            r[conf.id] = {}
+            for line in conf.configuration_line_ids:
+                r[conf.id][line.name] = line.value
+        return r
+ 
 fiscal_printer_configuration()
 
 class fiscal_printer_user(osv.AbstractModel):
@@ -74,48 +84,67 @@ class fiscal_printer_user(osv.AbstractModel):
     Fiscal printer user is a Abstract class to be used by the owner of the fiscal printer.
     The entity responsable to print tickets must inheret this class.
     """
+    def _get_fp_state(self, cr, uid, ids, fields_name, arg, context=None):
+        context = context or {}
+        r = {}
+        for jou in self.browse(cr, uid, ids, context):
+            r[jou.id] = 'offline'
+            res = jou.fiscal_printer_id.get_state() if jou.fiscal_printer_id else False
+            if res and res[jou.fiscal_printer_id.id]:
+                res = res[jou.fiscal_printer_id.id]
+                r[jou.id] = 'disabled'
+                r[jou.id] = 'open_fiscal_journal' if res['inFiscalJournal'] else 'close_fiscal_printer'
+                r[jou.id] = 'printing' if res['documentInProgress'] else r[jou.id]
+                r[jou.id] = 'nopaper' if res['slipHasPaper'] else r[jou.id]
+                r[jou.id] = 'nomemory' if res['memStatus'] else r[jou.id]
+                r[jou.id] = 'offline' if res['isOffline'] else r[jou.id]
+                r[jou.id] = 'onerror' if res['inError'] else r[jou.id]
+                r[jou.id] = 'deviceopen' if res['isPrinterOpen'] else r[jou.id]
+        return r
+
 
     _name = 'fiscal_printer.user'
     _description = 'Fiscal printer user'
 
     _columns = {
-        'fiscal_printer_id': field.many2one('fiscal_printer.fiscal_printer', 'Fiscal Printer'),
-        'configuration_id': field.many2one('fiscal_printer.configuration', 'Configuration'),
+        'fiscal_printer_id': fields.many2one('fiscal_printer.fiscal_printer', 'Fiscal Printer'),
+        'fiscal_printer_configuration_id': fields.many2one('fiscal_printer.configuration', 'Configuration'),
+        'fiscal_printer_state': fields.function(_get_fp_state, type='selection', string='Fiscal printer state',
+                                      method=True, readonly=True,
+                                      selection=[
+                                          ('deviceopen','Printer Open'),
+                                          ('onerror','On Error'),
+                                          ('offline','Offline'),
+                                          ('nomemory','No memory'),
+                                          ('printing','Printing'),
+                                          ('nopaper','No paper'),
+                                          ('open_fiscal_journal','Open Fiscal Journal'),
+                                          ('closed_fiscal_journal','Closed Fiscal Journal'),
+                                          ('disabled','Disabled'),
+                                      ], help="Check printer status."),
     }
 
-    def _load_configuration(cr, uid, ids, context=None):
-        context = context or {}
-        r = {}
-        for usr in self.browse(cr, uid, ids, context):
-            push_arg = {}
-            r[usr.id] = {}
-            for conf in usr.configuration_id:
-                r[usr.id][conf.name] = conf.value
-        return r
- 
-    def make_fiscal_ticket(cr, uid, ids, ticket, context=None):
+
+    def make_fiscal_ticket(self, cr, uid, ids, ticket, context=None):
         """
         Create Fiscal Ticket.
         """
         fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
-        context = args['context'] or {}
-        r = {
-            'turist_ticket': False,
-        }
-        options = self._load_configuration(cr, uid, ids, context=context)
-
+        context = context or {}
+        r = {}
         for usr in self.browse(cr, uid, ids, context):
+            options = usr.fiscal_printer_configuration_id.toDict()[usr.fiscal_printer_configuration_id.id]
             fp_id = usr.fiscal_printer_id.id
-            r[usr.id] = fp_obj.open_fiscal_ticket(cr, uid, fp_id,
-                                                  options=options, ticket=tiket,
+            r[usr.id] = fp_obj.make_fiscal_ticket(cr, uid, [fp_id],
+                                                  options=options, ticket=ticket,
                                                   context=context)
         return r
 
-    def cancel_fiscal_ticket(cr, uid, ids, context=None):
+    def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
         """
         """
         fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
-        context = args['context'] or {}
+        context = context or {}
         r = {}
         for usr in self.browse(cr, uid, ids, context):
             fp_id = usr.fiscal_printer_id.id

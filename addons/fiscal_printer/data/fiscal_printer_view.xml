@@ -23,6 +23,22 @@
 -->
 <openerp>
     <data>
+        <!-- TREEVIEW -->
+        <record id="view_disconnected_tree" model="ir.ui.view">
+            <field name="name">fiscal_printer.disconnected.tree</field>
+            <field name="model">fiscal_printer.disconnected</field>
+            <field name="arch" type="xml">
+                <tree string="Disconnected Fiscal Printer" create="false" edit="false">
+                    <field name="name"/>
+                    <field name="protocol"/>
+                    <field name="model"/>
+                    <field name="user_id"/>
+                    <field name="session_id"/>
+                    <button type="object" name="create_fiscal_printer" string="Create"
+                        icon="STOCK_NEW"/>
+                </tree>
+            </field>
+        </record>
 
         <!-- SEARCH VIEW -->
         <record id="view_fiscal_printer_fiscal_printer_filter" model="ir.ui.view">
@@ -114,6 +130,26 @@
                 </tree>
             </field>
         </record>
+
+        <!-- FORMVIEW -->
+        <record id="fiscal_printer.view_fiscal_printer_configuration_form" model="ir.ui.view">
+            <field name="name">fiscal_printer.configuration.form</field>
+            <field name="model">fiscal_printer.configuration</field>
+            <field name="arch" type="xml">
+                <form string="Fiscal Printer Configuration" version="7.0">
+                     <group>
+                        <field name="name" />
+                        <field name="configuration_line_ids">
+                            <tree editable="bottom">
+                                <field name="name"/>
+                                <field name="value"/>
+                            </tree>
+                        </field>
+                     </group>
+                </form>
+            </field>
+        </record>
+
 
     </data>
 </openerp>

@@ -23,9 +23,86 @@
 import re
 from openerp import netsvc
 from openerp.osv import osv, fields
+from openerp.tools.translate import _
 
 from controllers.main import do_event
 from datetime import datetime
+
+class fiscal_printer_disconnected(osv.TransientModel):
+    """
+    Disconnected but published printers.
+    """
+    _name = 'fiscal_printer.disconnected'
+    _description = 'Printers not connected to the server.'
+
+    _columns = {
+        'name': fields.char(string='Name'),
+        'protocol': fields.char(string='Protocol'),
+        'model': fields.char(string='Model'),
+        'serialNumber': fields.char(string='Serial Number'),
+        'session_id': fields.char(string='Session'),
+        'user_id': fields.many2one('res.users', string='Responsable'),
+    }
+
+    def _update_(self, cr, uid, force=True, context=None):
+        cr.execute('SELECT COUNT(*) FROM %s' % self._table)
+        count = cr.fetchone()[0]
+        if not force and count > 0:
+            return 
+        if count > 0:
+            cr.execute('DELETE FROM %s' % self._table)
+        t_fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
+        R = do_event('list_printers', control=True)
+        w_wfp_ids = []
+        i = 0
+        for resp in R:
+            for p in resp['printers']:
+                if t_fp_obj.search(cr, uid, [("name", "=", p['name'])]):
+                    pass
+                else:
+                    values = {
+                        'name': p['name'],
+                        'protocol': p['protocol'],
+                        'model': p['model'],
+                        'serialNumber': p['serialNumber'],
+                        'session_id': p['sid'],
+                        'user_id': p['uid'],
+                    }
+                    pid = self.create(cr, uid, values)
+
+    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
+        self._update_(cr, uid, force=True)
+        return super(fiscal_printer_disconnected, self).search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=count)
+
+    def read(self, cr, uid, ids, fields=None, context=None, load='_classic_read'):
+        self._update_(cr, uid, force=False)
+        return super(fiscal_printer_disconnected, self).read(cr, uid, ids, fields=fields, context=context, load=load)
+
+    def create_fiscal_printer(self, cr, uid, ids, context=None):
+        """
+        Create fiscal printers from this temporal printers
+        """
+        fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
+        for pri in self.browse(cr, uid, ids):
+            values = {
+                'name': pri.name,
+                'protocol': pri.protocol,
+                'model': pri.model,
+                'serialNumber': pri.serialNumber,
+            }
+            fp_obj.create(cr, uid, values)
+        return {
+            'name': _('Fiscal Printers'),
+            'domain': [],
+            'res_model': 'fiscal_printer.fiscal_printer',
+            'type': 'ir.actions.act_window',
+            'view_id': False,
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'context': context,
+        }
+
+fiscal_printer_disconnected()
 
 class fiscal_printer_attribute(osv.osv):
     """
@@ -41,13 +118,13 @@ class fiscal_printer_attribute(osv.osv):
         'lastUpdate': fields.datetime(string='Last Update'),
         'lastCommit': fields.datetime(string='Last Commit'),
         'readOnly': fields.boolean(string='Read Only'),
-        'fiscal_printer_id': fields.many2one('fiscal_printer.fiscal_printer', string='Fiscal Printer', required=True), 
+        'fiscal_printer_id': fields.many2one('fiscal_printer.fiscal_printer', string='Fiscal Printer', required=True, ondelete="cascade"), 
     }
 
     _defaults = {
     }
 
-    _constraints = [
+    _sql_constraints = [
         ('unique_name', 'UNIQUE (name, fiscal_printer_id)', 'Name has to be unique!')
     ]
 
@@ -197,7 +274,7 @@ class fiscal_printer(osv.osv):
         return True
 
     def make_fiscal_ticket(self, cr, uid, ids, options={}, ticket={}, context=None):
-        fparms = locals()
+        fparms = {}
         r = {}
         for fp in self.browse(cr, uid, ids):
             fparms['name'] = fp.name
@@ -209,7 +286,7 @@ class fiscal_printer(osv.osv):
         return r
 
     def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
-        fparms = locals()
+        fparms = {} 
         r = {}
         for fp in self.browse(cr, uid, ids):
             fparms['name'] = fp.name
@@ -217,7 +294,6 @@ class fiscal_printer(osv.osv):
                                     session_id=fp.session_id, printer_id=fp.name)
             r[fp.id] = event_result.pop() if event_result else False
         return r
-
  
 fiscal_printer()
 

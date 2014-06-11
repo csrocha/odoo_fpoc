@@ -34,22 +34,24 @@
             <field name="domain">[]</field>
         </record>
 
-        <record id="action_fiscal_printer_wiz_update_printers_update_fiscal_printers" model="ir.actions.act_window">
-            <field name="name">Update Fiscal Printers</field>
-            <field name="res_model">fiscal_printer.wiz_update_printers</field>
+        <record id="action_disconnected_fiscal_printers" model="ir.actions.act_window">
+            <field name="name">Disconnected Fiscal Printers</field>
+            <field name="res_model">fiscal_printer.disconnected</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="view_fiscal_printer_wiz_update_printers_form"/>
-            <field name="target">new</field>
-            <field name="domain">[]</field>
+            <field name="view_mode">tree</field>
+            <field name="target"></field>
         </record>
 
-        <menuitem id="menu_fiscal_printers" name="Fiscal Printers" parent="account.menu_finance_configuration" sequence="40" groups="account.group_account_manager"
+        <menuitem id="menu_fp_config" name="Fiscal Printers" parent="base.menu_config" sequence="40"/>
+
+        <menuitem id="menu_disconnected" name="Disconnected" parent="menu_fp_config" sequence="5"
+            action="action_disconnected_fiscal_printers"
+            />
+
+        <menuitem id="menu_fiscal_printers" name="Fiscal Printers" parent="menu_fp_config" sequence="20"
             action="action_fiscal_printer_fiscal_printer_fiscal_printers"
             />
-        <menuitem id="menu_update_fiscal_printers" name="Update Fiscal Printers" parent="account.menu_finance_configuration" sequence="50" groups="account.group_account_manager"
-            action="action_fiscal_printer_wiz_update_printers_update_fiscal_printers"
-            />
+
     </data>
 </openerp>
 <!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
