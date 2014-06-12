@@ -104,32 +104,6 @@ class fiscal_printer_disconnected(osv.TransientModel):
 
 fiscal_printer_disconnected()
 
-class fiscal_printer_attribute(osv.osv):
-    """
-    Fiscal printer attribute is a value to setup the printer.
-    """
-    
-    _name = 'fiscal_printer.attribute'
-    _description = 'Fiscal printer attribute'
-
-    _columns = {
-        'name': fields.char(string='Name'),
-        'value': fields.char(string='Value'),
-        'lastUpdate': fields.datetime(string='Last Update'),
-        'lastCommit': fields.datetime(string='Last Commit'),
-        'readOnly': fields.boolean(string='Read Only'),
-        'fiscal_printer_id': fields.many2one('fiscal_printer.fiscal_printer', string='Fiscal Printer', required=True, ondelete="cascade"), 
-    }
-
-    _defaults = {
-    }
-
-    _sql_constraints = [
-        ('unique_name', 'UNIQUE (name, fiscal_printer_id)', 'Name has to be unique!')
-    ]
-
-fiscal_printer_attribute()
-
 class fiscal_printer(osv.osv):
     """
     The fiscal printer entity.
@@ -153,7 +127,7 @@ class fiscal_printer(osv.osv):
                     'fiscalStatus': 'Offline',
                 }
         return r
-    
+
     _name = 'fiscal_printer.fiscal_printer'
     _description = 'fiscal_printer'
 
@@ -167,7 +141,6 @@ class fiscal_printer(osv.osv):
         'fiscalStatus':  fields.function(_get_status, type="char", method=True, readonly="True", multi="state", string='Fiscal status'),
         'clock':         fields.function(_get_status, type="datetime", method=True, readonly="True", multi="state", string='Clock'),
         'session_id': fields.char(string='session_id'),
-        'attribute_ids': fields.one2many('fiscal_printer.attribute', 'fiscal_printer_id', string='Attributes'), 
     }
 
     _defaults = {
@@ -240,38 +213,6 @@ class fiscal_printer(osv.osv):
                      session_id=fp.session_id, printer_id=fp.name)
             r[fp.id] = event_result.pop() if event_result else False
         return r
-
-    def read_attributes(self, cr, uid, ids, context=None):
-        attr_obj = self.pool.get('fiscal_printer.attribute')
-        r = {}
-        for fp in self.browse(cr, uid, ids):
-            event_result = do_event('read_attributes', {'name': fp.name},
-                     session_id=fp.session_id, printer_id=fp.name)
-            r = event_result.pop() if event_result else False
-            if r and 'attributes' in r:
-                lastUpdate = fields.date.context_today
-                attribs = []
-                for k,v in r['attributes'].items():
-                    attr_id = attr_obj.search(cr, uid, [('name','=',k), ('fiscal_printer_id','=',fp.id)])
-                    if len(attr_id) == 0:
-                        t_op = 0
-                        t_id = 0
-                    else:
-                        t_op = 1
-                        t_id = attr_id[0]
-                    attribs.append((t_op,t_id,{
-                        'name': k,
-                        'value': v,
-                        'lastUpdate': False,
-                        'readOnly': k in r['readonly'],
-                        'fiscal_printer_id': fp.id
-                    }))
-                self.write(cr, uid, fp.id, {'attribute_ids': attribs})
-        return True
-
-    def write_attributes(self, cr, uid, ids, context=None):
-        r = {}
-        return True
 
     def make_fiscal_ticket(self, cr, uid, ids, options={}, ticket={}, context=None):
         fparms = {}

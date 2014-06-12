@@ -23,26 +23,6 @@
 from openerp import netsvc
 from openerp.osv import osv, fields
 
-class fiscal_printer_configuration_line(osv.osv):
-    """
-    The configuration line have information for each ticket from the same
-    point of sale.
-    """
-    _name = 'fiscal_printer.configuration_line'
-    _description = 'Configuration line'
-
-    _columns = {
-        'name': fields.char(string='Name'),
-        'value': fields.char(string='Value'),
-        'configuration_id': fields.many2one('fiscal_printer.configuration', 'Fiscal Printer Configuration'),
-    }
-
-    _sql_constraints = [
-        ('unique_name', 'UNIQUE (name, configuration_id)', 'Name has to be unique!')
-    ]
-
-fiscal_printer_configuration_line()
-
 class fiscal_printer_configuration(osv.osv):
     """
     This configuration is independent of the printer, is related to point of sale.
@@ -57,9 +37,16 @@ class fiscal_printer_configuration(osv.osv):
     _name = 'fiscal_printer.configuration'
     _description = 'Fiscal printer configuration'
 
+    def _get_type(self, cr, uid, context=None):
+        return []
+
+    def _get_protocol(self, cr, uid, context=None):
+        return []
+
     _columns = {
         'name': fields.char(string='Name'),
-        'configuration_line_ids': fields.one2many('fiscal_printer.configuration_line', 'configuration_id', string='Configuration lines'),
+        'type': fields.selection(_get_type, 'Type'),
+        'protocol': fields.char('Protocol'),
         'user_ids': fields.one2many('fiscal_printer.user', 'fiscal_printer_configuration_id', 'User entities'),
     }
 
@@ -67,16 +54,12 @@ class fiscal_printer_configuration(osv.osv):
         ('unique_name', 'UNIQUE (name)', 'Name has to be unique!')
     ]
 
+    def onchange_type(self, cr, uid, ids, type, context=None):
+        return { 'value': { 'protocol': None } }
+
     def toDict(self, cr, uid, ids, context=None):
-        context = context or {}
-        r = {}
-        for conf in self.browse(cr, uid, ids, context):
-            push_arg = {}
-            r[conf.id] = {}
-            for line in conf.configuration_line_ids:
-                r[conf.id][line.name] = line.value
-        return r
- 
+        return { id: {} for id in ids }
+
 fiscal_printer_configuration()
 
 class fiscal_printer_user(osv.AbstractModel):
@@ -101,7 +84,6 @@ class fiscal_printer_user(osv.AbstractModel):
                 r[jou.id] = 'onerror' if res['inError'] else r[jou.id]
                 r[jou.id] = 'deviceopen' if res['isPrinterOpen'] else r[jou.id]
         return r
-
 
     _name = 'fiscal_printer.user'
     _description = 'Fiscal printer user'
@@ -137,7 +119,7 @@ class fiscal_printer_user(osv.AbstractModel):
             fp_id = usr.fiscal_printer_id.id
             r[usr.id] = fp_obj.make_fiscal_ticket(cr, uid, [fp_id],
                                                   options=options, ticket=ticket,
-                                                  context=context)
+                                                  context=context)[fp_id]
         return r
 
     def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
@@ -149,6 +131,6 @@ class fiscal_printer_user(osv.AbstractModel):
         for usr in self.browse(cr, uid, ids, context):
             fp_id = usr.fiscal_printer_id.id
             r[usr.id] = fp_obj.cancel_fiscal_ticket(cr, uid, fp_id,
-                                                   context=context)
+                                                   context=context)[fp_id]
         return r
 
