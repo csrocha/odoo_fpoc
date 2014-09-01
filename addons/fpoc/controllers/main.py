@@ -42,8 +42,8 @@ result_hub = {}
 ## Monkey path for HttpRequest
 http_old_dispatch = oeweb.HttpRequest.dispatch
 
-def http_dispatch(self, method):
-    r = http_old_dispatch(self, method)
+def http_dispatch(self):
+    r = http_old_dispatch(self)
     if hasattr(r, 'headers'):
         r.headers._list.append(('Access-Control-Allow-Origin',access_control_allow_origin))
         r.headers._list.append(('Access-Control-Allow-Credentials', 'true'))
@@ -54,8 +54,8 @@ oeweb.HttpRequest.dispatch = http_dispatch
 ## Monkey path for JsonRequest
 json_old_dispatch = oeweb.JsonRequest.dispatch
 
-def json_dispatch(self, method):
-    r = json_old_dispatch(self, method)
+def json_dispatch(self):
+    r = json_old_dispatch(self)
     if hasattr(r, 'headers'):
         r.headers._list.append(('Access-Control-Allow-Origin',access_control_allow_origin))
         r.headers._list.append(('Access-Control-Allow-Credentials', 'true'))
