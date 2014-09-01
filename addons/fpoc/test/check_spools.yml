@@ -1,0 +1,18 @@
+-
+  Create wizard for search and create printers.
+-
+  !record {model: fiscal_printer.wiz_update_printers, id: wiz_update_printers_1}:
+
+
+-
+  Check content
+-
+  !python {model: fiscal_printer.wiz_update_printers}: |
+        fs = self.fields_get(cr, uid, [ref('wiz_update_printers_1')])
+        print fs
+        ds = self.default_get(cr, uid, fs)
+        print ds
+        #s = self.read(cr, uid, [ref('wiz_update_printers_1')], ['state', 'printer_ids'])
+        #print s
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
