@@ -1,2 +1,5 @@
+fp.db
+fp.db.log
+*~
 .*.swp
 *.pyc
