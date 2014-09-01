@@ -58,7 +58,7 @@
 			</model>
 		</userDefined>
 </profile>
-<XMI xmi.version = '1.2' xmlns:UML = 'org.omg.xmi.namespace.UML' timestamp = 'Mon Sep 01 17:04:57 ART 2014'>
+<XMI xmi.version = '1.2' xmlns:UML = 'org.omg.xmi.namespace.UML' timestamp = 'Mon Sep 01 17:11:10 ART 2014'>
   <XMI.header>    <XMI.documentation>
       <XMI.exporter>ArgoUML (using Netbeans XMI Writer version 1.0)</XMI.exporter>
       <XMI.exporterVersion>0.34(6) revised on $Date: 2010-01-11 22:20:14 +0100 (Mon, 11 Jan 2010) $ </XMI.exporterVersion>
@@ -509,7 +509,7 @@
               </UML:Association.connection>
             </UML:Association>
             <UML:Class xmi.id = '127-0-1-1-4d8dd468:144adbbc12d:-8000:0000000000000CF8'
-              name = 'fical_printer_attribute' visibility = 'public' isSpecification = 'false'
+              name = 'fiscal_printer_attribute' visibility = 'public' isSpecification = 'false'
               isRoot = 'false' isLeaf = 'false' isAbstract = 'false' isActive = 'false'>
               <UML:ModelElement.taggedValue>
                 <UML:TaggedValue xmi.id = '127-0-1-1-3f2ada97:144c107d5ed:-8000:0000000000000CB7'
@@ -2062,7 +2062,7 @@
       bold="false"
       textsize="12"
       justification="Center"
-    >fical_printer_attribute</text>
+    >fiscal_printer_attribute</text>
     <group name="Fig9.2"
          description="org.argouml.uml.diagram.ui.FigStereotypesGroup[1289, 769, 230, 0]"
          href="127-0-1-1-4d8dd468:144adbbc12d:-8000:0000000000000CF8"
