@@ -34,7 +34,7 @@ class fiscal_printer_configuration(osv.osv):
     close_fiscal_ticket
     """
 
-    _name = 'fiscal_printer.configuration'
+    _name = 'fpoc.configuration'
     _description = 'Fiscal printer configuration'
 
     def _get_type(self, cr, uid, context=None):
@@ -47,7 +47,7 @@ class fiscal_printer_configuration(osv.osv):
         'name': fields.char(string='Name'),
         'type': fields.selection(_get_type, 'Type'),
         'protocol': fields.char('Protocol'),
-        'user_ids': fields.one2many('fiscal_printer.user', 'fiscal_printer_configuration_id', 'User entities'),
+        'user_ids': fields.one2many('fpoc.user', 'fiscal_printer_configuration_id', 'User entities'),
     }
 
     _sql_constraints = [
@@ -85,12 +85,12 @@ class fiscal_printer_user(osv.AbstractModel):
                 r[jou.id] = 'deviceopen' if res['isPrinterOpen'] else r[jou.id]
         return r
 
-    _name = 'fiscal_printer.user'
+    _name = 'fpoc.user'
     _description = 'Fiscal printer user'
 
     _columns = {
-        'fiscal_printer_id': fields.many2one('fiscal_printer.fiscal_printer', 'Fiscal Printer'),
-        'fiscal_printer_configuration_id': fields.many2one('fiscal_printer.configuration', 'Configuration'),
+        'fiscal_printer_id': fields.many2one('fpoc.fiscal_printer', 'Fiscal Printer'),
+        'fiscal_printer_configuration_id': fields.many2one('fpoc.configuration', 'Configuration'),
         'fiscal_printer_state': fields.function(_get_fp_state, type='selection', string='Fiscal printer state',
                                       method=True, readonly=True,
                                       selection=[
@@ -111,7 +111,7 @@ class fiscal_printer_user(osv.AbstractModel):
         """
         Create Fiscal Ticket.
         """
-        fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
+        fp_obj = self.pool.get('fpoc.fiscal_printer')
         context = context or {}
         r = {}
         for usr in self.browse(cr, uid, ids, context):
@@ -125,7 +125,7 @@ class fiscal_printer_user(osv.AbstractModel):
     def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
         """
         """
-        fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
+        fp_obj = self.pool.get('fpoc.fiscal_printer')
         context = context or {}
         r = {}
         for usr in self.browse(cr, uid, ids, context):

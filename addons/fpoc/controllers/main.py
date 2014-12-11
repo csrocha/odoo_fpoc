@@ -28,6 +28,7 @@ import psycopg2
 import sys
 import json
 from multiprocessing import Process
+import threading
 
 from Queue import Queue, Full, Empty
 import logging
@@ -36,8 +37,11 @@ _logger = logging.getLogger(__name__)
 
 access_control_allow_origin = 'chrome-extension://gileacnnoefamnjnhjnijommagpamona'
 event_id = 0
+event_event = {}
+event_result = {}
 event_hub = {}
 result_hub = {}
+thread_hub = {}
 
 ## Monkey path for HttpRequest
 http_old_dispatch = oeweb.HttpRequest.dispatch
@@ -63,10 +67,26 @@ def json_dispatch(self):
 
 oeweb.JsonRequest.dispatch = json_dispatch
 
+class DenialService(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
 ## Event manager
 def do_event(event, data={}, session_id=None, printer_id=None, control=False):
-    event_result = {}
+    """
+    Execute an event in the client side.
+
+    If client not response in 60 seg, then raise a DenialService. Else return the client result.
+    """
+    global event_id
+
+    event_id += 1
+    result = {}
     item = {
+        'id': event_id,
         'event': event,
         'data': json.dumps(data),
     }
@@ -83,32 +103,33 @@ def do_event(event, data={}, session_id=None, printer_id=None, control=False):
     _logger.debug("Send message '%s' to spools: %s" % (event, qids))
 
     for qid in qids:
-        try:
-            event_hub[qid].put(item, True, 10)
-            r = result_hub[qid].get()
-            result_hub[qid].task_done()
-            event_result[qid] = r
-        except Full:
-            _logger.warning("Queue put timeout for session %s:" % qid)
-            pass
-        except:
-            _logger.error("Unexpected error for session %s:" % qid, sys.exc_info()[0])
-            raise
+        event_event[event_id] = threading.Event()
+        event_result[event_id] = None
+        event_hub[qid].put(item)
+        w = event_event[event_id].wait(60)
+        result[qid] = event_result[event_id] if w else None
+        event_hub[qid].task_done()
 
-    return [ event_result[qid] for qid in qids if qid in event_result ]
+    return [ result[qid] for qid in qids if qid in result ]
 
 def do_return(req, result):
+    """
+    Take the response from the client side, and push result in the queue.
+
+    If the response is not related to any previous request drop the message.
+    """
     sid = req.session_id
     pid = req.params.get('printer_id', '')
     qid = ':'.join([sid, pid])
 
     if qid not in event_hub:
+        _logger.debug("<<< Drop message: %s" % result)
         return False
 
-    result_hub[qid].put(result)
-    _logger.debug("<<< QID: %s" % qid)
-    event_hub[qid].task_done()
-    return True
+    this_event_id = int(result['event_id'])
+    event_result[this_event_id] = result
+    event_event[this_event_id].set()
+    del event_event[this_event_id]
 
 ## Controller
 class FiscalPrinterController(oeweb.Controller):
@@ -131,39 +152,44 @@ class FiscalPrinterController(oeweb.Controller):
 
     @oeweb.httprequest
     def spool(self, req, **kw):
+        global event_id
+        global event_hub
+
         sid = req.session_id
         pid = req.params.get('printer_id', '')
         qid = ':'.join([sid, pid])
+        self.qid = qid
 
         _logger.debug("Create new spool: %s" % qid)
 
         if (qid in event_hub):
+            event_hub[qid].join()
             del event_hub[qid]
-            del result_hub[qid]
 
         event_hub[qid] = Queue()
-        result_hub[qid] = Queue()
 
         if req.httprequest.headers.get('accept') != 'text/event-stream':
             return req.make_response('Not implemented', headers={'Status': '501 Not Implemented'})
 
-        def event_source_iter():
-            event_id = req.httprequest.headers.get('last-event-id', 0, type=int)
+        # Last event id.
+        last_event_id = req.httprequest.headers.get('last-event-id', 0, type=int)
+        if last_event_id > event_id:
+            event_id = last_event_id
 
-            while True:
-                item = event_hub[qid].get()
-                event_id += 1
-                message = { 'id': event_id }
-                message.update(item)
-                _logger.debug("Send message %s to %s" % (item['event'], qid))
-                yield 'event: %(event)s\ndata: %(data)s\nid: %(id)s\n\n' % message
-
-        return req.make_response(event_source_iter(),
+        return req.make_response(self.event_source_iter(last_event_id),
                                  [('cache-control', 'no-cache'),
                                   ('Content-Type', 'text/event-stream')])
 
     @oeweb.jsonrequest
     def fp_info(self, req, printers, **kw):
         return do_return(req, printers);
+
+    def event_source_iter(self, event_id):
+        qid = self.qid
+
+        while True:
+            message = event_hub[qid].get()
+            _logger.debug("Send message %s to %s" % (message['event'], qid))
+            yield 'event: %(event)s\ndata: %(data)s\nid: %(id)s\n\n' % message
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

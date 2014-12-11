@@ -12,7 +12,7 @@
     ],
     'data': [
         u'view/fiscal_printer_view.xml',
-        u'view/fiscal_printer_menuitem.xml',
+        u'view/fpoc_menuitem.xml',
         u'security/fiscal_printer_group.xml',
         u'security/ir.model.access.csv'],
     'version': '0.1',

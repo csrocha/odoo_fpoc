@@ -36,16 +36,16 @@ class epson_ar_fiscal_printer(osv.osv):
     The fiscal printer entity.
     """
 
-    _inherit = 'fiscal_printer.fiscal_printer'
+    _inherit = 'fpoc.fiscal_printer'
 
     def _get_field(self, cr, uid, ids, field_name, args, context):
         r = {}
         for fp in self.browse(cr, uid, ids):
-            r[fp.id] = {}
+            r[fp.id] = { fn: False for fn in field_name }
             event_result = do_event('read_attributes', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
             event_result = event_result.pop() if event_result else {}
-            if 'attributes' in event_result:
+            if event_result and 'attributes' in event_result:
                 attrs = event_result['attributes']
                 r[fp.id]['header'] = '\n'.join([ attrs[k] for k in _header_lines ])
                 r[fp.id]['footer'] = '\n'.join([ attrs[k] for k in _footer_lines ])
@@ -103,7 +103,7 @@ class epson_ar_fiscal_tf_printer_configuration(osv.osv):
     Configuracion necesaria para documentos fiscales Ticket-Facturas/Nota de Debito
     """
 
-    _inherit = 'fiscal_printer.configuration'
+    _inherit = 'fpoc.configuration'
     _description = 'Configuracion de TF/TND para Epson Argentina'
 
     def _get_type(self, cr, uid, context=None):

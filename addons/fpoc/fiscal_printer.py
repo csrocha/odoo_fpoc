@@ -28,11 +28,13 @@ from openerp.tools.translate import _
 from controllers.main import do_event
 from datetime import datetime
 
+from openerp.addons.fpoc.controllers.main import DenialService
+
 class fiscal_printer_disconnected(osv.TransientModel):
     """
     Disconnected but published printers.
     """
-    _name = 'fiscal_printer.disconnected'
+    _name = 'fpoc.disconnected'
     _description = 'Printers not connected to the server.'
 
     _columns = {
@@ -51,15 +53,17 @@ class fiscal_printer_disconnected(osv.TransientModel):
             return 
         if count > 0:
             cr.execute('DELETE FROM %s' % self._table)
-        t_fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
+        t_fp_obj = self.pool.get('fpoc.fiscal_printer')
         R = do_event('list_printers', control=True)
         w_wfp_ids = []
         i = 0
         for resp in R:
+            if not resp: continue
             for p in resp['printers']:
                 if t_fp_obj.search(cr, uid, [("name", "=", p['name'])]):
                     pass
                 else:
+                    import pdb; pdb.set_trace()
                     values = {
                         'name': p['name'],
                         'protocol': p['protocol'],
@@ -82,7 +86,7 @@ class fiscal_printer_disconnected(osv.TransientModel):
         """
         Create fiscal printers from this temporal printers
         """
-        fp_obj = self.pool.get('fiscal_printer.fiscal_printer')
+        fp_obj = self.pool.get('fpoc.fiscal_printer')
         for pri in self.browse(cr, uid, ids):
             values = {
                 'name': pri.name,
@@ -94,7 +98,7 @@ class fiscal_printer_disconnected(osv.TransientModel):
         return {
             'name': _('Fiscal Printers'),
             'domain': [],
-            'res_model': 'fiscal_printer.fiscal_printer',
+            'res_model': 'fpoc.fiscal_printer',
             'type': 'ir.actions.act_window',
             'view_id': False,
             'view_mode': 'tree,form',
@@ -111,14 +115,15 @@ class fiscal_printer(osv.osv):
 
     def _get_status(self, cr, uid, ids, field_name, arg, context=None):
         s = self.get_state(cr, uid, ids, context) 
+        
         r = {}
         for p_id in ids:
             if s[p_id]:
                 dt = datetime.strptime(s[p_id]['clock'], "%Y-%m-%d %H:%M:%S")
                 r[p_id] = {
                     'clock': dt.strftime("%Y-%m-%d %H:%M:%S"),
-                    'printerStatus': s[p_id]['strPrinterStatus'],
-                    'fiscalStatus': s[p_id]['strFiscalStatus'],
+                    'printerStatus': s[p_id].get('strPrinterStatus', 'unknown'),
+                    'fiscalStatus': s[p_id].get('strFiscalStatus', 'unknown'),
                 }
             else:
                 r[p_id]= {
@@ -128,7 +133,7 @@ class fiscal_printer(osv.osv):
                 }
         return r
 
-    _name = 'fiscal_printer.fiscal_printer'
+    _name = 'fpoc.fiscal_printer'
     _description = 'fiscal_printer'
 
     _columns = {
@@ -201,8 +206,11 @@ class fiscal_printer(osv.osv):
     def get_state(self, cr, uid, ids, context=None):
         r = {}
         for fp in self.browse(cr, uid, ids):
-            event_result = do_event('get_status', {'name': fp.name},
+            try:
+                event_result = do_event('get_status', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
+            except DenialService, m:
+                raise osv.osvexcept(m)
             r[fp.id] = event_result.pop() if event_result else False
         return r
 

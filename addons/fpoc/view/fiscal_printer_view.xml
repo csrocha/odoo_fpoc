@@ -1,32 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-##############################################################################
-#
-#    fiscal_printer
-#    Copyright (C) 2014 No author.
-#    No email
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
--->
 <openerp>
     <data>
         <!-- TREEVIEW -->
         <record id="view_disconnected_tree" model="ir.ui.view">
-            <field name="name">fiscal_printer.disconnected.tree</field>
-            <field name="model">fiscal_printer.disconnected</field>
+            <field name="name">fpoc.disconnected.tree</field>
+            <field name="model">fpoc.disconnected</field>
             <field name="arch" type="xml">
                 <tree string="Disconnected Fiscal Printer" create="false" edit="false">
                     <field name="name"/>
@@ -42,8 +20,8 @@
 
         <!-- SEARCH VIEW -->
         <record id="view_fiscal_printer_fiscal_printer_filter" model="ir.ui.view">
-            <field name="name">fiscal_printer.fiscal_printer.select</field>
-            <field name="model">fiscal_printer.fiscal_printer</field>
+            <field name="name">fpoc.fpoc.select</field>
+            <field name="model">fpoc.fiscal_printer</field>
             <field name="arch" type="xml">
                 <search string="Fiscal Printer" version="7.0">
                     <group string="By Attribute">
@@ -57,9 +35,9 @@
         </record>
 
         <!-- FORMVIEW -->
-        <record id="fiscal_printer.view_fiscal_printer_fiscal_printer_form" model="ir.ui.view">
-            <field name="name">fiscal_printer.fiscal_printer.form</field>
-            <field name="model">fiscal_printer.fiscal_printer</field>
+        <record id="fpoc.view_fiscal_printer_fiscal_printer_form" model="ir.ui.view">
+            <field name="name">fpoc.fpoc.form</field>
+            <field name="model">fpoc.fiscal_printer</field>
             <field name="arch" type="xml">
                 <form string="fiscal_printer" version="7.0">
                     <header>
@@ -100,8 +78,8 @@
 
         <!-- TREEVIEW -->
         <record id="view_fiscal_printer_fiscal_printer_tree" model="ir.ui.view">
-            <field name="name">fiscal_printer.fiscal_printer.tree</field>
-            <field name="model">fiscal_printer.fiscal_printer</field>
+            <field name="name">fpoc.fpoc.tree</field>
+            <field name="model">fpoc.fiscal_printer</field>
             <field name="arch" type="xml">
                 <tree string="Fiscal Printer"
                     >
@@ -121,8 +99,8 @@
 
         <!-- TREEVIEW -->
         <record id="view_fiscal_printer_configuration_tree" model="ir.ui.view">
-            <field name="name">fiscal_printer.configuration.tree</field>
-            <field name="model">fiscal_printer.configuration</field>
+            <field name="name">fpoc.configuration.tree</field>
+            <field name="model">fpoc.configuration</field>
             <field name="arch" type="xml">
                 <tree string="Fiscal Printer Configuration">
                     <field name="name" />
@@ -134,9 +112,9 @@
 
 
         <!-- FORMVIEW -->
-        <record id="fiscal_printer.view_fiscal_printer_configuration_form" model="ir.ui.view">
-            <field name="name">fiscal_printer.configuration.form</field>
-            <field name="model">fiscal_printer.configuration</field>
+        <record id="fpoc.view_fiscal_printer_configuration_form" model="ir.ui.view">
+            <field name="name">fpoc.configuration.form</field>
+            <field name="model">fpoc.configuration</field>
             <field name="arch" type="xml">
                 <form string="Fiscal Printer Configuration" version="7.0">
                      <group id="main">
@@ -149,10 +127,10 @@
         </record>
 
         <!-- FORMVIEW -->
-        <record id="fiscal_printer.view_fiscal_printer_epson_form" model="ir.ui.view">
-            <field name="name">fiscal_printer.epson.form</field>
-            <field name="model">fiscal_printer.fiscal_printer</field>
-            <field name="inherit_id" ref="fiscal_printer.view_fiscal_printer_fiscal_printer_form"/>
+        <record id="fpoc.view_fiscal_printer_epson_form" model="ir.ui.view">
+            <field name="name">fpoc.epson.form</field>
+            <field name="model">fpoc.fiscal_printer</field>
+            <field name="inherit_id" ref="fpoc.view_fiscal_printer_fiscal_printer_form"/>
             <field name="arch" type="xml">
                 <page string="Attributes" position="inside">
                     <group attrs="{'invisible': [('protocol','!=','epson_ar')]}" string="Datos Fijos">
@@ -180,8 +158,8 @@
 
         <!-- FORMVIEW -->
         <record id="view_fiscal_printer_epson_ar_fiscal_tf_form" model="ir.ui.view">
-            <field name="name">fiscal_printer.epson_ar_fiscal_tf.form</field>
-            <field name="model">fiscal_printer.configuration</field>
+            <field name="name">fpoc.epson_ar_fiscal_tf.form</field>
+            <field name="model">fpoc.configuration</field>
             <field name="inherit_id" ref="view_fiscal_printer_configuration_form"/>
             <field name="arch" type="xml">
                         <group id="main" position="after">
