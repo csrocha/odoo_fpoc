@@ -47,8 +47,8 @@ class epson_ar_fiscal_printer(osv.osv):
             event_result = event_result.pop() if event_result else {}
             if event_result and 'attributes' in event_result:
                 attrs = event_result['attributes']
-                r[fp.id]['header'] = '\n'.join([ attrs[k] for k in _header_lines ])
-                r[fp.id]['footer'] = '\n'.join([ attrs[k] for k in _footer_lines ])
+                r[fp.id]['header'] = '\n'.join([ attrs[k] for k in _header_lines if attrs[k] ])
+                r[fp.id]['footer'] = '\n'.join([ attrs[k] for k in _footer_lines if attrs[k] ])
                 for fn in field_name:
                     if fn in attrs:
                         if fn in ['tasaIVA', 'maxMonto']:
@@ -66,11 +66,11 @@ class epson_ar_fiscal_printer(osv.osv):
                  'attributes': {} }
         if (field_name == 'header'):
             lines = field_value.split('\n')[:len(_header_lines)]
-            lines = lines + (len(_header_lines) - len(lines)) * ['\n']
+            lines = lines + (len(_header_lines) - len(lines)) * ['']
             data['attributes'].update(dict(zip(_header_lines, lines)))
         if (field_name == 'footer'):
             lines = field_value.split('\n')[:len(_footer_lines)]
-            lines = lines + (len(_footer_lines) - len(lines)) * ['\n']
+            lines = lines + (len(_footer_lines) - len(lines)) * ['']
             data['attributes'].update(dict(zip(_footer_lines, lines)))
         event_result = do_event('write_attributes', data,
                  session_id=fp.session_id, printer_id=fp.name)
