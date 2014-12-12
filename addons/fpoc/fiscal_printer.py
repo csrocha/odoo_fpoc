@@ -63,7 +63,6 @@ class fiscal_printer_disconnected(osv.TransientModel):
                 if t_fp_obj.search(cr, uid, [("name", "=", p['name'])]):
                     pass
                 else:
-                    import pdb; pdb.set_trace()
                     values = {
                         'name': p['name'],
                         'protocol': p['protocol'],
@@ -115,7 +114,7 @@ class fiscal_printer(osv.osv):
 
     def _get_status(self, cr, uid, ids, field_name, arg, context=None):
         s = self.get_state(cr, uid, ids, context) 
-        
+
         r = {}
         for p_id in ids:
             if s[p_id]:
