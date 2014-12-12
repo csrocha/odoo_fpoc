@@ -6,7 +6,7 @@
     'description': 'Fiscal Printer on the Cloud',
     'installable': True,
     'license': 'AGPL-3',
-    'name': 'fpoc',
+    'name': 'Fiscal Printer on the Cloud',
     'test': [
         u'test/check_spools.yml',
     ],
