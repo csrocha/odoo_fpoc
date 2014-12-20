@@ -121,8 +121,8 @@ class fiscal_printer(osv.osv):
                 dt = datetime.strptime(s[p_id]['clock'], "%Y-%m-%d %H:%M:%S")
                 r[p_id] = {
                     'clock': dt.strftime("%Y-%m-%d %H:%M:%S"),
-                    'printerStatus': s[p_id].get('strPrinterStatus', 'unknown'),
-                    'fiscalStatus': s[p_id].get('strFiscalStatus', 'unknown'),
+                    'printerStatus': s[p_id].get('strPrinterStatus', 'Unknown'),
+                    'fiscalStatus': s[p_id].get('strFiscalStatus', 'Unknown'),
                 }
             else:
                 r[p_id]= {
@@ -171,32 +171,37 @@ class fiscal_printer(osv.osv):
                      session_id=fp.session_id, printer_id=fp.name)
         return True
 
-
-    def advance_paper(self, cr, uid, ids, inv_id, context=None):
+    def advance_paper(self, cr, uid, ids, context=None):
         for fp in self.browse(cr, uid, ids):
             do_event('advance_paper', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
         return True
         
-    def cut_paper(self, cr, uid, ids, inv_id, context=None):
+    def cut_paper(self, cr, uid, ids, context=None):
         for fp in self.browse(cr, uid, ids):
             do_event('cut_paper', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
         return True
         
-    def open_fiscal_journal(self, cr, uid, ids, inv_id, context=None):
+    def open_fiscal_journal(self, cr, uid, ids, context=None):
         for fp in self.browse(cr, uid, ids):
             do_event('open_fiscal_journal', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
         return True
 
-    def close_fiscal_journal(self, cr, uid, ids, inv_id, context=None):
+    def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
+        for fp in self.browse(cr, uid, ids):
+            do_event('cancel_fiscal_ticket', {'name': fp.name},
+                     session_id=fp.session_id, printer_id=fp.name)
+        return True
+
+    def close_fiscal_journal(self, cr, uid, ids, context=None):
         for fp in self.browse(cr, uid, ids):
             do_event('close_fiscal_journal', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
         return True
 
-    def shift_change(self, cr, uid, ids, inv_id, context=None):
+    def shift_change(self, cr, uid, ids, context=None):
         for fp in self.browse(cr, uid, ids):
             do_event('shift_change', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
@@ -209,7 +214,7 @@ class fiscal_printer(osv.osv):
                 event_result = do_event('get_status', {'name': fp.name},
                      session_id=fp.session_id, printer_id=fp.name)
             except DenialService, m:
-                raise osv.osvexcept(m)
+                raise osv.except_osv(_('Connectivity Error'), m)
             r[fp.id] = event_result.pop() if event_result else False
         return r
 
