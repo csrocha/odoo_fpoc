@@ -62,13 +62,17 @@
                             <page string="Attributes">
                             </page>
                             <page string="Actions">
+                                <separator string="Test"/>
                                 <button name="short_test"           type="object" string="Short Test"/>
                                 <button name="large_test"           type="object" string="Large Test"/>
+                                <separator string="Paper management"/>
                                 <button name="advance_paper"        type="object" string="Advance paper"/>
                                 <button name="cut_paper"            type="object" string="Cut paper"/>
+                                <separator string="Fiscal Management"/>
                                 <button name="open_fiscal_journal"  type="object" string="Open Fiscal Journal"/>
-                                <button name="close_fiscal_journal" type="object" string="Close Fiscal Journal"/>
+                                <button name="cancel_fiscal_ticket" type="object" string="Cancel Ticket"/>
                                 <button name="shift_change"         type="object" string="Shift Change"/>
+                                <button name="close_fiscal_journal" type="object" string="Close Fiscal Journal"/>
                             </page>
                         </notebook>
                     </sheet>
