@@ -76,6 +76,9 @@ class epson_ar_fiscal_printer(osv.osv):
                  session_id=fp.session_id, printer_id=fp.name)
         return True
 
+
+
+
     _columns = {
         'header': fields.function(_get_field, fnct_inv=_put_field, type="text", method=True, multi='epson_text', store=False, string='Header'),
         'footer': fields.function(_get_field, fnct_inv=_put_field, type="text", method=True, multi='epson_text', store=False, string='Footer'),
@@ -106,9 +109,57 @@ class epson_ar_fiscal_tf_printer_configuration(osv.osv):
     _inherit = 'fpoc.configuration'
     _description = 'Configuracion de TF/TND para Epson Argentina'
 
+    epson_type_paper_status = {
+        'epson_ar_receipt': ( 'receiptState', {
+            0: 'ok',
+            1: 'low',
+            2: 'none',
+            3: 'unknown',
+        }),
+        'epson_ar_journal': ( 'journalState', {
+            0: 'ok',
+            1: 'low',
+            2: 'none',
+            3: 'unknown',
+        }),
+        'epson_ar_slip': ( 'slipHasPaper', {
+            0: 'ok',
+            1: 'low',
+            2: 'none',
+            3: 'unknown',
+        }),
+    }
+
+    def solve_status(self, cr, uid, ids, status, context=None):
+        r = super(epson_ar_fiscal_tf_printer_configuration, self).solve_status(cr, uid, ids, status, context=context)
+        for conf in self.browse(cr, uid, ids):
+            if conf.type not in ['epson_ar_receipt', 'epson_ar_journal', 'epson_ar_slip']:
+                continue
+            for stat in r.values():
+                if not stat:
+                    continue
+                if 'paper_state' not in stat:
+                    key, rule = self.epson_type_paper_status.get(conf.type, (False, False))
+                    stat['paper_state'] = rule[stat[key]] if key else 'unknown'
+                if 'fiscal_state' not in stat:
+                    stat['fiscal_state'] = 'open' if stat['inFiscalJournal'] else 'close'
+                if 'printer_state' not in stat:
+                    stat['printer_state'] = [ v for v in ['deviceopen' if stat['isPrinterOpen']      else False,
+                                                          'onerror'    if stat['inError']            else False,
+                                                          'offline'    if stat['isOffline']          else False,
+                                                          'nomemory'   if stat['memStatus']          else False,
+                                                          'nopaper'    if stat['slipHasPaper']       else False,
+                                                          'printing'   if stat['documentInProgress'] else False,
+                                                          'ready'] if v ][0]
+        return r
+
     def _get_type(self, cr, uid, context=None):
         r = super(epson_ar_fiscal_tf_printer_configuration, self)._get_type(cr, uid, context=context)
-        return r + [('epson_ar_tf','Tiquet Factura/Nota de Debito Epson Arg.')]
+        return r + [
+            ('epson_ar_receipt', _('Receipt Epson Arg.')),
+            ('epson_ar_journal', _('Journal Epson Arg.')),
+            ('epson_ar_slip',    _('Slip station Epson Arg.')),
+        ]
 
     _columns = {
         'type': fields.selection(_get_type, 'Type'),
