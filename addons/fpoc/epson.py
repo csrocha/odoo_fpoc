@@ -65,11 +65,11 @@ class epson_ar_fiscal_printer(osv.osv):
         data = { 'name': fp.name,
                  'attributes': {} }
         if (field_name == 'header'):
-            lines = field_value.split('\n')[:len(_header_lines)]
+            lines = field_value.split('\n')[:len(_header_lines)] if field_value else []
             lines = lines + (len(_header_lines) - len(lines)) * ['']
             data['attributes'].update(dict(zip(_header_lines, lines)))
         if (field_name == 'footer'):
-            lines = field_value.split('\n')[:len(_footer_lines)]
+            lines = field_value.split('\n')[:len(_footer_lines)] if field_value else []
             lines = lines + (len(_footer_lines) - len(lines)) * ['']
             data['attributes'].update(dict(zip(_footer_lines, lines)))
         event_result = do_event('write_attributes', data,
