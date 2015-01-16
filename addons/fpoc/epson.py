@@ -27,6 +27,10 @@ from openerp.tools.translate import _
 
 from controllers.main import do_event
 from datetime import datetime
+import logging
+
+_logger = logging.getLogger(__name__)
+_schema = logging.getLogger(__name__ + '.schema')
 
 _header_lines = ['headerLine 1', 'headerLine 2', 'headerLine 3', 'headerLine 4', 'headerLine 5', 'headerLine 6', 'headerLine 7']
 _footer_lines = ['footerLine 1', 'footerLine 2', 'footerLine 3', 'footerLine 4', 'footerLine 5', 'footerLine 6', 'footerLine 7']
@@ -47,8 +51,10 @@ class epson_ar_fiscal_printer(osv.osv):
             event_result = event_result.pop() if event_result else {}
             if event_result and 'attributes' in event_result:
                 attrs = event_result['attributes']
-                r[fp.id]['header'] = '\n'.join([ attrs[k] for k in _header_lines if attrs[k] ])
-                r[fp.id]['footer'] = '\n'.join([ attrs[k] for k in _footer_lines if attrs[k] ])
+                r[fp.id]['header'] = '\n'.join([ attrs[k] for k in _header_lines
+                                                if k in attrs and attrs[k] ])
+                r[fp.id]['footer'] = '\n'.join([ attrs[k] for k in _footer_lines
+                                                if k in attrs and attrs[k] ])
                 for fn in field_name:
                     if fn in attrs:
                         if fn in ['tasaIVA', 'maxMonto']:
@@ -75,9 +81,6 @@ class epson_ar_fiscal_printer(osv.osv):
         event_result = do_event('write_attributes', data,
                  session_id=fp.session_id, printer_id=fp.name)
         return True
-
-
-
 
     _columns = {
         'header': fields.function(_get_field, fnct_inv=_put_field, type="text", method=True, multi='epson_text', store=False, string='Header'),
@@ -136,6 +139,7 @@ class epson_ar_fiscal_tf_printer_configuration(osv.osv):
             if conf.type not in ['epson_ar_receipt', 'epson_ar_journal', 'epson_ar_slip']:
                 continue
             for stat in r.values():
+                _logger.debug(stat)
                 if not stat:
                     continue
                 if 'paper_state' not in stat:

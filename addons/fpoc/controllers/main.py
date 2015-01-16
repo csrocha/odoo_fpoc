@@ -29,6 +29,9 @@ import sys
 import json
 from multiprocessing import Process
 import threading
+from openerp.osv import osv
+from openerp.tools.translate import _
+from urlparse import parse_qs
 
 from Queue import Queue, Full, Empty
 import logging
@@ -42,6 +45,9 @@ event_result = {}
 event_hub = {}
 result_hub = {}
 thread_hub = {}
+response_hub = {}
+to_remove = {}
+timeout = 5
 
 ## Monkey path for HttpRequest
 http_old_dispatch = oeweb.HttpRequest.dispatch
@@ -66,6 +72,30 @@ def json_dispatch(self):
     return r
 
 oeweb.JsonRequest.dispatch = json_dispatch
+
+## Monkey path to capture connection_dropped
+from werkzeug.serving import WSGIRequestHandler
+
+wsgi_old_connection_dropped = WSGIRequestHandler.connection_dropped
+
+def connection_dropped(self, error, environ=None):
+    """Called if the connection was closed by the client.  By default
+    nothing happens.
+    """
+    path = environ.get('PATH_INFO', None)
+    if path and path == '/fp/spool':
+        q = parse_qs('&'.join([environ.get('QUERY_STRING',''),
+                               environ.get('HTTP_COOKIE', '')]))
+        sid = q.get('session_id',[''])[0]
+        pid = q.get('printer_id',[''])[0]
+        qid = "%s:%s" % (sid, pid)
+        if qid in event_hub:
+            del event_hub[qid]
+            _logger.debug(u"Removing spools %s by %s" % (qid, str(error).decode('utf8')))
+        else:
+            _logger.warning(u"Removing spools %s by %s, but it not was stored." % (qid, str(error).decode('utf8')))
+
+WSGIRequestHandler.connection_dropped = connection_dropped
 
 class DenialService(Exception):
     def __init__(self, message):
@@ -107,8 +137,12 @@ def do_event(event, data={}, session_id=None, printer_id=None, control=False):
         event_result[event_id] = None
         event_hub[qid].put(item)
         w = event_event[event_id].wait(60)
-        result[qid] = event_result[event_id] if w else None
+        if not w: raise osv.except_osv(_('Error!'), _('Timeout happen!!'))
+        _logger.debug("Return '%s': %s" % (qids, w))
+        result[qid] = event_result[event_id]
         event_hub[qid].task_done()
+
+    _logger.debug("Result from '%s' was: %s" % (qids, result))
 
     return [ result[qid] for qid in qids if qid in result ]
 
@@ -150,6 +184,10 @@ class FiscalPrinterController(oeweb.Controller):
     def push(self, req, **kw):
         return do_return(req, kw)
 
+    def on_close_spool(self, **kw):
+        _logger.debug("Closing spool %s" % self.qid)
+        return
+
     @oeweb.httprequest
     def spool(self, req, **kw):
         global event_id
@@ -160,11 +198,13 @@ class FiscalPrinterController(oeweb.Controller):
         qid = ':'.join([sid, pid])
         self.qid = qid
 
-        _logger.debug("Create new spool: %s" % qid)
-
         if (qid in event_hub):
-            event_hub[qid].join()
-            del event_hub[qid]
+            _logger.debug("Close connection spool %s by duplication." % qid)
+            return req.make_response('\n\nevent: close\n\n\n\n',
+                                 [('cache-control', 'no-cache'),
+                                  ('Content-Type', 'text/event-stream')])
+
+        _logger.debug("Open new connection spool: %s" % qid)
 
         event_hub[qid] = Queue()
 
@@ -176,9 +216,10 @@ class FiscalPrinterController(oeweb.Controller):
         if last_event_id > event_id:
             event_id = last_event_id
 
-        return req.make_response(self.event_source_iter(last_event_id),
+        self.spool_response = req.make_response(self.event_source_iter(last_event_id),
                                  [('cache-control', 'no-cache'),
                                   ('Content-Type', 'text/event-stream')])
+        return self.spool_response
 
     @oeweb.jsonrequest
     def fp_info(self, req, printers, **kw):
@@ -187,9 +228,15 @@ class FiscalPrinterController(oeweb.Controller):
     def event_source_iter(self, event_id):
         qid = self.qid
 
+        yield '\n\n' # Force connection recognition on client
         while True:
-            message = event_hub[qid].get()
-            _logger.debug("Send message %s to %s" % (message['event'], qid))
-            yield 'event: %(event)s\ndata: %(data)s\nid: %(id)s\n\n' % message
+            try:
+                message = event_hub[qid].get(timeout=timeout)
+                _logger.debug("Send message %s to %s" % (message['event'], qid))
+                yield 'event: %(event)s\ndata: %(data)s\nid: %(id)s\n\n' % message
+            except Empty:
+                # Force check status.
+                # If connection, spool still alive.
+                yield 'event: ping\n\n'
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
