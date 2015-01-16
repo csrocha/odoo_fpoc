@@ -144,7 +144,7 @@ class epson_ar_fiscal_tf_printer_configuration(osv.osv):
                     continue
                 if 'paper_state' not in stat:
                     key, rule = self.epson_type_paper_status.get(conf.type, (False, False))
-                    stat['paper_state'] = rule[stat[key]] if key else 'unknown'
+                    stat['paper_state'] = rule.get(stat.get(key, 'unknown'),'unknown')
                 if 'fiscal_state' not in stat:
                     stat['fiscal_state'] = 'open' if stat['inFiscalJournal'] else 'close'
                 if 'printer_state' not in stat:
