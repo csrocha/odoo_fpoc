@@ -182,9 +182,9 @@ class fiscal_printer_user(osv.AbstractModel):
             if not usr.fiscal_printer_state in ['ready']:
                 raise osv.except_osv(_('Error!'), _('Printer is not ready to close.'))
             if not usr.fiscal_printer_fiscal_state in ['open']:
-                raise osv.except_osv(_('Error!'), _('You can\'t close a closed printer.'))
+                raise osv.except_osv(_('Error!'), _('You can\'t shift a closed printer.'))
             if not usr.fiscal_printer_paper_state in ['ok']:
-                raise osv.except_osv(_('Error!'), _('You can\'t close a printer with low quantity of paper.'))
+                raise osv.except_osv(_('Error!'), _('You can\'t shift a printer with low quantity of paper.'))
             r[usr.id] = usr.fiscal_printer_id.shift_change()
         return r
 
