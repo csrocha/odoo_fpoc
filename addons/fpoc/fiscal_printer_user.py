@@ -119,11 +119,24 @@ class fiscal_printer_user(osv.AbstractModel):
         context = context or {}
         r = {}
         for usr in self.browse(cr, uid, ids, context):
+            if not usr.fiscal_printer_id:
+                raise osv.except_osv(_('Error!'),
+                                     _('Selected journal has not printer associated.'))
+            if not usr.fiscal_printer_configuration_id:
+                raise osv.except_osv(_('Error!'),
+                                     _('Selected journal has not configuration associated.'))
+            if not usr.fiscal_printer_fiscal_state == 'open':
+                raise osv.except_osv(_('Error!'),
+                                     _('Need open fiscal status to print a '
+                                       'ticket. Actual status is %s') % usr.fiscal_printer_fiscal_state)
             options = usr.fiscal_printer_configuration_id.toDict()[usr.fiscal_printer_configuration_id.id]
             fp_id = usr.fiscal_printer_id.id
             r[usr.id] = fp_obj.make_fiscal_ticket(cr, uid, [fp_id],
                                                   options=options, ticket=ticket,
                                                   context=context)[fp_id]
+            if isinstance(r[usr.id], RuntimeError) and r[usr.id].message == "Timeout":
+                raise osv.except_osv(_('Error!'),
+                                     _('Timeout happen!!'))
         return r
 
     def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
@@ -160,6 +173,19 @@ class fiscal_printer_user(osv.AbstractModel):
             if not usr.fiscal_printer_paper_state in ['ok']:
                 raise osv.except_osv(_('Error!'), _('You can\'t close a printer with low quantity of paper.'))
             r[usr.id] = usr.fiscal_printer_id.close_fiscal_journal()
+        return r
+
+    def shift_change(self, cr, uid, ids, context=None):
+        context = context or {}
+        r = {}
+        for usr in self.browse(cr, uid, ids, context):
+            if not usr.fiscal_printer_state in ['ready']:
+                raise osv.except_osv(_('Error!'), _('Printer is not ready to close.'))
+            if not usr.fiscal_printer_fiscal_state in ['open']:
+                raise osv.except_osv(_('Error!'), _('You can\'t shift a closed printer.'))
+            if not usr.fiscal_printer_paper_state in ['ok']:
+                raise osv.except_osv(_('Error!'), _('You can\'t shift a printer with low quantity of paper.'))
+            r[usr.id] = usr.fiscal_printer_id.shift_change()
         return r
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
