@@ -97,6 +97,8 @@
                         />
                     <field name="lastUpdate"
                         />
+                    <field name="session_id"
+                        />
                 </tree>
             </field>
         </record>

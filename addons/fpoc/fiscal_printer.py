@@ -66,8 +66,8 @@ class fiscal_printer_disconnected(osv.TransientModel):
                     values = {
                         'name': p['name'],
                         'protocol': p['protocol'],
-                        'model': p['model'],
-                        'serialNumber': p['serialNumber'],
+                        'model': p.get('model', 'undefined'),
+                        'serialNumber': p.get('serialNumber', 'undefined'),
                         'session_id': p['sid'],
                         'user_id': p['uid'],
                     }
@@ -87,11 +87,13 @@ class fiscal_printer_disconnected(osv.TransientModel):
         """
         fp_obj = self.pool.get('fpoc.fiscal_printer')
         for pri in self.browse(cr, uid, ids):
+	    #import pdb;pdb.set_trace()
             values = {
                 'name': pri.name,
                 'protocol': pri.protocol,
                 'model': pri.model,
                 'serialNumber': pri.serialNumber,
+		'session_id': pri.session_id
             }
             fp_obj.create(cr, uid, values)
         return {
@@ -115,6 +117,7 @@ class fiscal_printer(osv.osv):
     def _get_status(self, cr, uid, ids, field_name, arg, context=None):
         s = self.get_state(cr, uid, ids, context) 
 
+	#import pdb;pdb.set_trace()
         r = {}
         for p_id in ids:
             if s[p_id]:
