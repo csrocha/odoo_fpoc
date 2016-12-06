@@ -58,6 +58,7 @@ class fiscal_printer_user(osv.AbstractModel):
         r = {}
         for fpu in self.browse(cr, uid, ids, context):
             r[fpu.id] = dict(zip(fields_name, ['unknown']*len(fields_name)))
+	    #import pdb;pdb.set_trace()
 
             if not fpu.fiscal_printer_id:
                 continue
@@ -84,7 +85,7 @@ class fiscal_printer_user(osv.AbstractModel):
                                                        method=True, readonly=True, multi="state",
                                                        selection=[
                                                            ('open','Open'),
-                                                           ('close','Close'),
+                                                           ('close','Closed'),
                                                            ('unknown','Unknown'),
                                                        ], help="Fiscal state of the printer"),
         'fiscal_printer_paper_state': fields.function(_get_fp_state,
@@ -158,7 +159,7 @@ class fiscal_printer_user(osv.AbstractModel):
             if not usr.fiscal_printer_state in ['ready']:
                 raise osv.except_osv(_('Error!'), _('Printer is not ready to open.'))
             if not usr.fiscal_printer_fiscal_state in ['close']:
-                raise osv.except_osv(_('Error!'), _('You can\'t open a opened printer.'))
+                raise osv.except_osv(_('Error!'), _('You can\'t open a printer already open.'))
             r[usr.id] = usr.fiscal_printer_id.open_fiscal_journal()
         return r
 
