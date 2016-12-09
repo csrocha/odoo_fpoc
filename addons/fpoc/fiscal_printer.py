@@ -236,7 +236,9 @@ class fiscal_printer(osv.osv):
             fparms['name'] = fp.name
             fparms['options'] = options
             fparms['ticket'] = ticket
-            event_result = do_event('make_fiscal_ticket', fparms,
+	    #import pdb;pdb.set_trace()
+            #event_result = do_event('make_fiscal_ticket', fparms,
+            event_result = do_event('make_ticket_factura', fparms,
                                     session_id=fp.session_id, printer_id=fp.name)
             r[fp.id] = event_result.pop() if event_result else False
         return r
