@@ -243,6 +243,20 @@ class fiscal_printer(osv.osv):
             r[fp.id] = event_result.pop() if event_result else False
         return r
 
+    def make_fiscal_refund_ticket(self, cr, uid, ids, options={}, ticket={}, context=None):
+        fparms = {}
+        r = {}
+        for fp in self.browse(cr, uid, ids):
+            fparms['name'] = fp.name
+            fparms['options'] = options
+            fparms['ticket'] = ticket
+	    #import pdb;pdb.set_trace()
+            #event_result = do_event('make_fiscal_ticket', fparms,
+            event_result = do_event('make_ticket_notacredito', fparms,
+                                    session_id=fp.session_id, printer_id=fp.name)
+            r[fp.id] = event_result.pop() if event_result else False
+        return r
+
     def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
         fparms = {} 
         r = {}
