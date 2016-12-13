@@ -140,6 +140,34 @@ class fiscal_printer_user(osv.AbstractModel):
                                      _('Timeout happen!!'))
         return r
 
+    def make_fiscal_refund_ticket(self, cr, uid, ids, ticket, context=None):
+        """
+        Create Fiscal Ticket.
+        """
+        fp_obj = self.pool.get('fpoc.fiscal_printer')
+        context = context or {}
+        r = {}
+        for usr in self.browse(cr, uid, ids, context):
+            if not usr.fiscal_printer_id:
+                raise osv.except_osv(_('Error!'),
+                                     _('Selected journal has not printer associated.'))
+            if not usr.fiscal_printer_configuration_id:
+                raise osv.except_osv(_('Error!'),
+                                     _('Selected journal has not configuration associated.'))
+            if not usr.fiscal_printer_fiscal_state == 'open':
+                raise osv.except_osv(_('Error!'),
+                                     _('Need open fiscal status to print a '
+                                       'ticket. Actual status is %s') % usr.fiscal_printer_fiscal_state)
+            options = usr.fiscal_printer_configuration_id.toDict()[usr.fiscal_printer_configuration_id.id]
+            fp_id = usr.fiscal_printer_id.id
+            r[usr.id] = fp_obj.make_fiscal_refund_ticket(cr, uid, [fp_id],
+                                                  options=options, ticket=ticket,
+                                                  context=context)[fp_id]
+            if isinstance(r[usr.id], RuntimeError) and r[usr.id].message == "Timeout":
+                raise osv.except_osv(_('Error!'),
+                                     _('Timeout happen!!'))
+        return r
+
     def cancel_fiscal_ticket(self, cr, uid, ids, context=None):
         """
         """
